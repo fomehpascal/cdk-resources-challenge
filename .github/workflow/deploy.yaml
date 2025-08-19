@@ -34,14 +34,16 @@ jobs:
         if: github.ref == 'refs/heads/dev'
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::DEV_ACCOUNT_ID:role/GitHubActionsOIDC-Dev # Replace with your Dev OIDC role ARN
+          role-to-assume: arn:aws:iam::762233768786:role/GitHubActionsOIDC-Dev # Replace with your Dev OIDC role ARN
+          role-session-name: GitHubActions-Backend-${{ github.run_id }}
           aws-region: us-east-1 # preferred AWS region for dev
 
       - name: Configure AWS Credentials for Prod
         if: github.ref == 'refs/heads/master'
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::PROD_ACCOUNT_ID:role/GitHubActionsOIDC-Prod # Replace with your Prod OIDC role ARN
+          role-to-assume: arn:aws:iam::762233768786:role/GitHubOIDCRole-Prod # Replace with your Prod OIDC role ARN
+          role-session-name: GitHubActions-Backend-${{ github.run_id }}
           aws-region: us-east-1 # preferred AWS region for Prod
 
       - name: CDK Synth

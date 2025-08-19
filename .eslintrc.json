@@ -1,0 +1,20 @@
+{
+  "plugins": [
+    "cdk"
+  ],
+  "extends": [
+    // recommended configurations
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended" // for TypeScript
+  ],
+  "rules": {
+    // General CDK rules
+    "cdk/avoid-variable-in-construct-id": "error", // Avoid using variable names directly as construct IDs.
+    "cdk/no-unsafe-l1-construct": "warn", // Warn about using L1 constructs (CloudFormation resources) directly.
+
+    // S3 construct specific rules
+    "cdk/s3-bucket-policy-least-privilege": "error", // Enforce least-privilege for S3 bucket policies.
+    "cdk/s3-bucket-versioning-enabled": "error", // Ensure S3 bucket versioning is enabled for data protection.
+    "cdk/s3-bucket-encryption-enabled": "error" // Enforce encryption for S3 buckets.
+  }
+}

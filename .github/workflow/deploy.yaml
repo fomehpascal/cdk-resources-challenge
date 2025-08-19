@@ -1,0 +1,58 @@
+# GitHub Actions workflow for deploying AWS CDK TypeScript application to Dev and Prod environments using OIDC 
+
+name: CDK Deploy
+
+on:
+  push:
+    branches:
+      - master # Triggers on push to master for Prod deployment
+      - dev # Triggers on push to dev for Dev deployment
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest # latest version of OS that run on the virtual machine (github runner) executing the deploy job
+    permissions:
+      id-token: write # Required for OIDC
+      contents: read # Required to checkout code
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # preferred Node.js version
+
+      - name: Install dependencies
+        run: npm ci   # command line utility for installing project dependencies
+
+      - name: Run unit tests
+        run: npm test # Jest tests are configured to run with 'npm test'
+
+      - name: Configure AWS Credentials for Dev
+        if: github.ref == 'refs/heads/dev'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::762233768786:role/GitHubActionsOIDC-Dev # Replace with your Dev OIDC role ARN
+          role-session-name: GitHubActions-Backend-${{ github.run_id }}
+          aws-region: us-east-1 # preferred AWS region for dev
+
+      - name: Configure AWS Credentials for Prod
+        if: github.ref == 'refs/heads/master'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::762233768786:role/GitHubOIDCRole-Prod # Replace with your Prod OIDC role ARN
+          role-session-name: GitHubActions-Backend-${{ github.run_id }}
+          aws-region: us-east-1 # preferred AWS region for Prod
+
+      - name: CDK Synth
+        run: npx cdk synth # command sysnthesizes CDK application into a cloudformation template
+
+      - name: CDK Deploy to Dev   # run AWS CDK command for deploying stacks to Dev environment 
+        if: github.ref == 'refs/heads/develop'
+        run: npx cdk deploy --all --require-approval broadening # manual approval required only if changes involve a broadening of permissions or security group rules
+
+      - name: CDK Deploy to Prod  # run AWS CDK command for deploying stacks to Prod
+        if: github.ref == 'refs/heads/main'
+        run: npx cdk deploy --all --require-approval any-change # require manual approval before Prod deploys
